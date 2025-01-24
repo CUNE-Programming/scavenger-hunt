@@ -1,0 +1,41 @@
+# fly.toml app configuration file generated for cune-scavenger-hunt on 2025-01-24T13:14:09-06:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'cune-scavenger-hunt'
+primary_region = 'den'
+console_command = '/code/manage.py shell'
+
+[build]
+
+[deploy]
+release_command = 'python manage.py migrate --noinput'
+
+
+[env]
+PORT = '8000'
+DEBUG = 'f'
+STATICFILES_BACKEND = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGE_BACKEND = "storages.backends.s3.S3Storage"
+# Fix for S3 Interfaces
+# https://github.com/jschneier/django-storages/issues/1482
+AWS_REQUEST_CHECKSUM_CALCULATION = "WHEN_REQUIRED"
+AWS_RESPONSE_CHECKSUM_VALIDATION = "WHEN_REQUIRED"
+
+[http_service]
+internal_port = 8000
+force_https = true
+auto_stop_machines = 'stop'
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
+
+[[vm]]
+memory = '1gb'
+cpu_kind = 'shared'
+cpus = 1
+
+[[statics]]
+guest_path = '/code/static'
+url_prefix = '/static/'

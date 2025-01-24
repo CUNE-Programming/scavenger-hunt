@@ -12,4 +12,7 @@ dependencies = [
     "wagtail>=6.3,<6.4",
     "environs[django]>=14.1.0",
     "whitenoise>=6.8.2",
+    "gunicorn>=23.0.0",
+    "django-storages[s3]>=1.14.4",
+    "sentry-sdk[django]>=2.20.0",
 ]

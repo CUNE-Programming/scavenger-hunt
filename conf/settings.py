@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import os
 import sys
 from pathlib import Path
 
@@ -26,21 +27,33 @@ env.read_env(BASE_DIR / ".env")
 if "test" in sys.argv:
     env.read_env(BASE_DIR / ".env.testing", override=True)
 
+
+if "SENTRY_DSN" in os.environ:
+    import sentry_sdk
+
+    sentry_sdk.init(dsn=env.str("SENTRY_DSN"))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=False)
+DEBUG = env.bool("DEBUG", False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY")
 
 # SECURITY WARNING: define the correct hosts in production!
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", subcast=str, delimiter=",", default="*,")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", subcast=str, delimiter=",", default="*,") + [
+    "cune-scavenger-hunt.fly.dev"
+]
 
 EMAIL_BACKEND = env.str(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
 )
+
+CSRF_TRUSTED_ORIGINS = ["https://cune-scavenger-hunt.fly.dev"]
+
+# Deployment Settings
 
 
 # Application definition
@@ -68,16 +81,18 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_rich",
+    "storages",
 ]
 
 MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
@@ -107,7 +122,7 @@ WSGI_APPLICATION = "conf.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {"default": env.dj_db_url("DB_URL", default="sqlite:///./db.sqlite3")}
+DATABASES = {"default": env.dj_db_url("DATABASE_URL", default="sqlite:///./db.sqlite3")}
 
 
 # Password validation
@@ -163,21 +178,30 @@ MEDIA_URL = "/media/"
 # See https://docs.djangoproject.com/en/5.1/ref/settings/#std-setting-STORAGES
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": env.str(
+            "STORAGE_BACKEND", "django.core.files.storage.FileSystemStorage"
+        ),
     },
     # ManifestStaticFilesStorage is recommended in production, to prevent
     # outdated JavaScript / CSS assets being served from cache
     # (e.g. after a Wagtail upgrade).
     # See https://docs.djangoproject.com/en/5.1/ref/contrib/staticfiles/#manifeststaticfilesstorage
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        "BACKEND": env.str(
+            "STATICFILES_BACKEND",
+            "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        ),
     },
 }
+
+AWS_S3_REGION_NAME = env.str("AWS_REGION", "")
+AWS_S3_ENDPOINT_URL = env.str("AWS_ENDPOINT_URL_S3", "")
+AWS_STORAGE_BUCKET_NAME = env.str("BUCKET_NAME", "")
 
 
 # Wagtail settings
 
-WAGTAIL_SITE_NAME = "conf"
+WAGTAIL_SITE_NAME = "Concordia Programming Team Scavenger Hunt"
 
 # Search
 # https://docs.wagtail.org/en/stable/topics/search/backends.html

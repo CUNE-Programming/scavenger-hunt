@@ -1,3 +1,10 @@
+FROM ghcr.io/astral-sh/uv:bookworm-slim as builder
+
+COPY pyproject.toml .
+COPY uv.lock .
+
+RUN uv export --no-hashes > requirements.txt
+
 # Use an official Python runtime based on Debian 12 "bookworm" as a parent image.
 FROM python:3.12-slim-bookworm
 
@@ -12,6 +19,7 @@ EXPOSE 8000
 # 2. Set PORT variable that is used by Gunicorn. This should match "EXPOSE"
 #    command.
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000
 
 # Install system packages required by Wagtail and Django.
@@ -28,7 +36,7 @@ RUN apt-get update --yes --quiet && apt-get install --yes --quiet --no-install-r
 RUN pip install "gunicorn==20.0.4"
 
 # Install the project requirements.
-COPY requirements.txt /
+COPY --from=builder requirements.txt /
 RUN pip install -r /requirements.txt
 
 # Use /app folder as a directory where the source code is stored.
@@ -48,13 +56,6 @@ USER wagtail
 # Collect static files.
 RUN python manage.py collectstatic --noinput --clear
 
-# Runtime command that executes when "docker run" is called, it does the
-# following:
-#   1. Migrate the database.
-#   2. Start the application server.
-# WARNING:
-#   Migrating database at the same time as starting the server IS NOT THE BEST
-#   PRACTICE. The database should be migrated manually or using the release
-#   phase facilities of your hosting platform. This is used only so the
-#   Wagtail instance can be started with a simple "docker run" command.
-CMD set -xe; python manage.py migrate --noinput; gunicorn conf.wsgi:application
+
+# Start the application server.
+CMD ["gunicorn","--bind",":8000","--workers","2","conf.wsgi"]
