@@ -60,6 +60,7 @@ CSRF_TRUSTED_ORIGINS = ["https://cune-scavenger-hunt.fly.dev"]
 
 INSTALLED_APPS = [
     "home",
+    "location",
     "search",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
