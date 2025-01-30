@@ -12,4 +12,4 @@ class LocationPage(Page):
     hint = RichTextField(blank=True)
 
     # modify your content_panels:
-    content_panels = Page.content_panels + ["name", "description", "hint"]
+    content_panels = Page.content_panels + [FieldPanel('name'), FieldPanel('description'), FieldPanel('hint')]
