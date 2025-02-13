@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block body_class %}template-location{% endblock %}
+
+{% block content %}
+<h1>{{ page.title }}</h1>
+<p>{{ page.name }}</p>
+<p>{{ page.description|richtext }}</p>
+{% if page.location_image %}
+{% image page.location_image fill-480x320 %}
+{% endif %}
+<p>{{ page.hint|richtext }}</p>
+{% if page.hint_image %}
+{% image page.hint_image fill-480x320 %}
+{% endif %}
+{% endblock content %}
