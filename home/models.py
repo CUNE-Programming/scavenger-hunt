@@ -38,6 +38,8 @@ class HomePage(Page):
 
     body = RichTextField(blank=True)
 
+    potato = RichTextField(blank=True)
+
     # modify your content_panels:
     content_panels = Page.content_panels + [
         MultiFieldPanel(
@@ -46,6 +48,7 @@ class HomePage(Page):
                 FieldPanel("hero_text"),
                 FieldPanel("hero_cta"),
                 FieldPanel("hero_cta_link"),
+                FieldPanel("potato"),
             ],
             heading="Hero section",
         ),
